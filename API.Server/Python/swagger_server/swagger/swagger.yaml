@@ -7,13 +7,13 @@ info:
     email: apiteam@swagger.io
   license:
     name: Apache 2.0
-    url: http://localhost:8000/api/v1
+    url: http://172.17.0.3:8000/api/v1
   version: 1.0.11
 externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
 servers:
-- url: http://localhost:8000/api/v1
+- url: http://172.17.0.3:8080/api/v1
 tags:
 - name: user
   description: Operations about user
