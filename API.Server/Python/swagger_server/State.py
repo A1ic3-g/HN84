@@ -1,4 +1,5 @@
 class State:
+    "State"
     _instance = None
     def __new__(cls):
         if cls._instance is None:
@@ -8,6 +9,7 @@ class State:
         return cls._instance
 
     def GetNextControllerId(self) -> int:
+        "Gets next controller ID"
         controller_id = self.next_controller_id
         self.next_controller_id += 1
         return controller_id

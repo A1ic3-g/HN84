@@ -1,6 +1,6 @@
 import connexion
 import six
-import State
+from swagger_server.State import State
 from swagger_server.models.controller import Controller  # noqa: E501
 from swagger_server.models.direction_update import DirectionUpdate  # noqa: E501
 from swagger_server import util
@@ -33,7 +33,7 @@ def controller_get():  # noqa: E501
 
     :rtype: Controller
     """
-    state = State.State()
+    state = State()
     return state.GetNextControllerId()
 
 def controller_controller_id_heartbeat_post(controller_id):  # noqa: E501
