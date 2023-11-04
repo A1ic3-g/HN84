@@ -3,15 +3,16 @@
 import connexion
 
 from swagger_server import encoder
+from flask_cors import CORS
 
 def main():
     app = connexion.App(__name__, specification_dir='./swagger/')
+    CORS(app.app, resources={r"/*": {"origins": "*"}})
     app.app.json_encoder = encoder.JSONEncoder
-    app.add_api('swagger.yaml', arguments={'title': 'HackPac - OpenAPI 3.0'}, pythonic_params=True)
 
-    # Disable CORS for all localhost connections
-    app.app.config['CORS_HEADERS'] = 'Content-Type'  # Optional: You can set specific CORS headers if needed
-    app.run(port=8080)
+    app.add_api('swagger.yaml', arguments={'title': 'HackPac - OpenAPI 3.0'}, pythonic_params=True)
+    
+    app.run(host="0.0.0.0", port=8080, debug = True)
 
 if __name__ == '__main__':
     main()
