@@ -34,7 +34,9 @@ def controller_get():  # noqa: E501
     :rtype: Controller
     """
     state = State()
-    return state.GetNextControllerId()
+    nextId = state.GetNextControllerId()
+    print(nextId)
+    return Controller(nextId)
 
 def controller_controller_id_heartbeat_post(controller_id):  # noqa: E501
     """heartbeat signal
