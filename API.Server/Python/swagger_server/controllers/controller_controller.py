@@ -1,6 +1,6 @@
 import connexion
 import six
-
+import State
 from swagger_server.models.controller import Controller  # noqa: E501
 from swagger_server.models.direction_update import DirectionUpdate  # noqa: E501
 from swagger_server import util
@@ -20,7 +20,9 @@ def controller_controller_id_direction_post(controller_id, body=None):  # noqa: 
     """
     if connexion.request.is_json:
         body = DirectionUpdate.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    
+    
+    return 'Success'
 
 
 def controller_get():  # noqa: E501
@@ -31,4 +33,17 @@ def controller_get():  # noqa: E501
 
     :rtype: Controller
     """
-    return 'do some magic!'
+    state = State.State()
+    return state.GetNextControllerId()
+
+def controller_controller_id_heartbeat_post(controller_id):  # noqa: E501
+    """heartbeat signal
+
+    heartbeat # noqa: E501
+
+    :param controller_id: ID of the controller
+    :type controller_id: int
+
+    :rtype: None
+    """
+    return 'alive'

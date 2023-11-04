@@ -2,13 +2,7 @@ openapi: 3.0.3
 info:
   title: HackPac - OpenAPI 3.0
   description: Pacman api server
-  termsOfService: http://swagger.io/terms/
-  contact:
-    email: apiteam@swagger.io
-  version: 1.0.11
-externalDocs:
-  description: Find out more about Swagger
-  url: http://swagger.io
+  version: 1.0.0
 servers:
 - url: http://localhost:8080/api/v1
 tags:
@@ -58,6 +52,26 @@ paths:
         "200":
           description: success
       x-openapi-router-controller: swagger_server.controllers.controller_controller
+  /controller/{controllerId}/heartbeat:
+    post:
+      tags:
+      - controller
+      summary: heartbeat signal
+      description: heartbeat
+      operationId: controller_controller_id_heartbeat_post
+      parameters:
+      - name: controllerId
+        in: path
+        description: ID of the controller
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: success
+      x-openapi-router-controller: swagger_server.controllers.controller_controller
 components:
   schemas:
     Controller:
@@ -75,4 +89,3 @@ components:
           type: string
           format: string
           example: up
-
