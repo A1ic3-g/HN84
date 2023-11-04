@@ -1,56 +1,56 @@
 id = -1;
-api = "http://172.17.0.2:8080/api/v1/";
+addr = "http://localhost:8080/api/v1/";
 
 function up() {
     console.log("Up");
-    post("up");
+    postDirection("up");
 }
 
 function down() {
     console.log("Down");
-    post("down");
+    postDirection("down");
 }
 
 function left() {
     console.log("Left");
-    post("left");
+    postDirection("left");
 }
 
 function right() {
     console.log("Right");
-    post("right");
+    postDirection("right");
 }
 
-function getId() {
-    url = api + "controller";
+function start() {
+    url = addr + "controller";
 
-    xhr = new XMLHttpRequest();
-    xhr.open("GET", url, false);
-    xhr.setRequestHeader("accept", "application/json");
-    xhr.send(null);
-    console.log(xhr.responseText);
-
-    /*
-    fetch(url, {
-        method: "GET",
-        headers: {"accept": "application/json"}
-    }).then((resp) => {
-        data = resp.json();
-        id = data["id"];
-        console.log(data);
-    });
-    */
+    fetch(url).then((resp) => {
+        return resp.json()
+    }).then((data) =>
+        id = data["id"]
+    ).then(() => maintain());
 }
 
-function post(direction) {
+function postDirection(direction) {
+    url = addr + "controller/" + id + "/direction";
     data = {direction: direction};
 
-    fetch(url, {
-        method: "POST",
-        headers: { "Content-type": "application/json"},
-        body: JSON.stringify(data)
-    }).then((resp) => console.log(resp.json()));
+    xhr = new XMLHttpRequest();
+    xhr.open("POST", url, false);
+    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.send(JSON.stringify(data));
 }
 
-getId();
-console.log(id);
+async function maintain() {
+    while (true) {
+        url = addr + "controller/" + id + "/heartbeat";
+
+        xhr = new XMLHttpRequest();
+        xhr.open("POST", url, false);
+        xhr.send(null);
+
+        await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+}
+
+start();
