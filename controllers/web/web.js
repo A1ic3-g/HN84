@@ -35,19 +35,27 @@ function postDirection(direction) {
     url = addr + "controller/" + id + "/direction";
     data = {direction: direction};
 
-    xhr = new XMLHttpRequest();
-    xhr.open("POST", url, false);
-    xhr.setRequestHeader("Content-type", "application/json");
-    xhr.send(JSON.stringify(data));
+    fetch(url, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-type": "application/json; charset=UTF-8"
+        }
+        });
 }
 
 async function maintain() {
     while (true) {
         url = addr + "controller/" + id + "/heartbeat";
 
-        xhr = new XMLHttpRequest();
-        xhr.open("POST", url, false);
-        xhr.send(null);
+        fetch(url, {
+                    method: "POST",
+                    body: "",
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8"
+                    }
+                    });
+
 
         await new Promise(resolve => setTimeout(resolve, 5000));
     }

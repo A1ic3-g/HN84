@@ -21,7 +21,8 @@ def controller_controller_id_direction_post(controller_id, body=None):  # noqa: 
     if connexion.request.is_json:
         body = DirectionUpdate.from_dict(connexion.request.get_json())  # noqa: E501
     
-    
+    state = State()
+    state.StoreDirectionUpdate(controller_id, body)
     return 'Success'
 
 
