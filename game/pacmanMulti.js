@@ -1452,6 +1452,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
   gameLoop();
 });
 
+/*
 document.addEventListener("keydown", (event) => {
   for (const p of pacMen)  {
     switch (event.key) {
@@ -1470,6 +1471,7 @@ document.addEventListener("keydown", (event) => {
     }
   }
 });
+*/
 
 function SetPacmanDirection(id, direction) {
   direction = direction.toLowerCase();
