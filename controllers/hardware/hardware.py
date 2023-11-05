@@ -33,12 +33,16 @@ while True:
     try:
         data = ser.readline().decode("utf-8").encode().strip()
         if data == b"up":
+            print("up")
             postDirection("up")
         if data == b"down":
+            print("down")
             postDirection("down")
         if data == b"left":
+            print("left")
             postDirection("left")
         if data == b"right":
+            print("right")
             postDirection("right")
 
     except KeyboardInterrupt:

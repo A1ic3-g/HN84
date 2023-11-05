@@ -61,4 +61,25 @@ async function maintain() {
     }
 }
 
+document.addEventListener("keydown", function(event) {
+    // Check which arrow key was pressed
+    if (event.key === "ArrowUp") {
+      // Arrow Up key was pressed
+      console.log("Arrow Up key pressed");
+      up();
+    } else if (event.key === "ArrowDown") {
+      // Arrow Down key was pressed
+      console.log("Arrow Down key pressed");
+      down();
+    } else if (event.key === "ArrowLeft") {
+      // Arrow Left key was pressed
+      console.log("Arrow Left key pressed");
+      left();
+    } else if (event.key === "ArrowRight") {
+      // Arrow Right key was pressed
+      console.log("Arrow Right key pressed");
+      right();
+    }
+  });
+
 start();
