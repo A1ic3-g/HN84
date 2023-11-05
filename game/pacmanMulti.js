@@ -141,7 +141,9 @@ class PacMan {
     for (let pellet of level.pellets) {
       if (!pellet.eaten && pellet.isEaten(this.x, this.y, this.radius)) {
         this.score += pellet.scoreValue;
+        let index = pacMen.indexOf(this);
         console.log(`Score for ${this.color} Pac-Man: ${this.score}`);
+        this.updateScoreDisplay(index, this.score);
         pellet.eaten = true; // Mark the pellet as eaten
         break; // Break to ensure only one pellet is eaten per frame
       }
@@ -153,9 +155,11 @@ class PacMan {
         !powerPellet.eaten &&
         powerPellet.isEaten(this.x, this.y, this.radius)
       ) {
+        let index = pacMen.indexOf(this);
         this.score += powerPellet.scoreValue;
         console.log(`Score for ${this.color} Pac-Man: ${this.score}`);
         powerPellet.eaten = true; // Mark the power pellet as eaten
+        this.updateScoreDisplay(index, this.score);
         break; // Break to ensure only one power pellet is eaten per frame
       }
     }
@@ -196,13 +200,10 @@ class PacMan {
     for (let g in ghosts) {
     }
   }
-  updateScoreDisplay() {
-    const scoreElement = document.getElementById(`score${this.color}`);
-    const livesElement = document.getElementById(`lives${this.color}`);
+  updateScoreDisplay(index, score) {
 
-    console.log(`Updating score for color: ${this.color}`);
-    console.log(`Score element found: `, scoreElement);
-    console.log(`Lives element found: `, livesElement);
+    const scoreElement = document.getElementById(`score${index+1}`);
+    const livesElement = document.getElementById(`lives${this.color}`);
 
     if (scoreElement) scoreElement.textContent = this.score;
     if (livesElement) {
