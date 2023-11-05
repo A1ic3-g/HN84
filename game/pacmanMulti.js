@@ -1,5 +1,6 @@
 class PacMan {
-  constructor(ctx, x, y, radius, color, mouthSpeed = 0.04) {
+  constructor(ctx, id, x, y, radius, color, mouthSpeed = 0.04) {
+    this.id;
     this.score = 0;
     this.ctx = ctx;
     this.x = x;
@@ -287,9 +288,14 @@ class PowerPellet extends Pellet {
   }
 }
 
+const serverURL = "http://localhost:8080/api/v1/";
+
 const canvas = document.getElementById("pacmanCanvas");
 const ctx = canvas.getContext("2d");
 let pacMen = [];
+let updateRequest;
+let timeBetweenUpdates = 1000/60;
+let timeLastUpdate = 0;
 const levelString = `
 WWWWWWWWWWWWWWWWWWWWWWWWWWWW
 W............WW............W
@@ -327,7 +333,50 @@ const level = new Level(ctx, levelString);
 
 document.getElementById("newPacman").addEventListener("click", addNewPacMan);
 
-function addNewPacMan() {
+async function GetUpdatesFromApi() {
+  const updateEndpoint = "update";
+  let endpoint = serverURL + updateEndpoint
+  let updates = []
+
+  // GET
+  fetch(endpoint)
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return response.json(); // Parse the JSON response
+  })
+  .then((data) => {
+    // 'data' is an array of objects
+    // You can use it as needed in your JavaScript code
+    //console.log(data);
+    data.forEach((update) => {
+      switch (update.updateType.toLowerCase()) {
+        case 'direction':
+          SetPacmanDirection(update.updateDetails.id,
+                             update.updateDetails.direction);
+          break;
+        case 'controller-connect':
+          addNewPacMan(update.updateDetails.id)
+          break;
+        case 'controller-disconnect':
+          // TODO: remove pacman
+          break;
+        default:
+          console.log("Unrecognised update type")
+          break;
+      }
+    });
+  })
+  .catch((error) => {
+    console.error("Error fetching data:", error);
+  });
+
+  
+
+}
+
+function addNewPacMan(id = 0) {
   const colors = ["red", "green", "purple", "orange"];
   const color = colors[Math.floor(Math.random() * colors.length)];
 
@@ -337,6 +386,7 @@ function addNewPacMan() {
 
   const newPacMan = new PacMan(
     ctx,
+    id,
     spawnPoint.x,
     spawnPoint.y,
     10,
@@ -350,19 +400,25 @@ function addNewPacMan() {
 function gameLoop() {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   level.draw();
-  for (let p of pacMen) {
-    p.update();
+  if (Date.now() - timeLastUpdate > timeBetweenUpdates) {
+    GetUpdatesFromApi();
   }
+  
+
+  pacMen.forEach((pacman) => {
+    pacman.update();
+  });
   requestAnimationFrame(gameLoop);
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
   document.getElementById("newPacman").addEventListener("click", addNewPacMan);
+
   gameLoop();
 });
 
 document.addEventListener("keydown", (event) => {
-  for (let p of pacMen) {
+  for (const p of pacMen)  {
     switch (event.key) {
       case "ArrowLeft":
         p.setDirection(-1, 0);
@@ -379,3 +435,27 @@ document.addEventListener("keydown", (event) => {
     }
   }
 });
+
+function SetPacmanDirection(id, direction) {
+  direction = direction.toLowerCase();
+  pacMan = null;
+  for (const p of pacMen) {
+    if (p.key == id) {
+      pacMan = p;
+    }
+  }
+
+  switch (direction) {
+    case "up":
+      pacMan.setDirection(0, -1);
+      break;
+    case "down":
+      pacMan.setDirection(0, 1);
+      break;
+    case "left":
+      pacMan.setDirection(-1, 0);
+      break;
+    case "right":
+      pacMan.setDirection(1, 0);
+  }
+}

@@ -14,19 +14,24 @@ class DirectionUpdate(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, direction: str=None):  # noqa: E501
+    def __init__(self, id: int=None, direction: str=None):  # noqa: E501
         """DirectionUpdate - a model defined in Swagger
 
+        :param id: The id of this DirectionUpdate.  # noqa: E501
+        :type id: int
         :param direction: The direction of this DirectionUpdate.  # noqa: E501
         :type direction: str
         """
         self.swagger_types = {
+            'id': int,
             'direction': str
         }
 
         self.attribute_map = {
+            'id': 'id',
             'direction': 'direction'
         }
+        self._id = id
         self._direction = direction
 
     @classmethod
@@ -39,6 +44,27 @@ class DirectionUpdate(Model):
         :rtype: DirectionUpdate
         """
         return util.deserialize_model(dikt, cls)
+
+    @property
+    def id(self) -> int:
+        """Gets the id of this DirectionUpdate.
+
+
+        :return: The id of this DirectionUpdate.
+        :rtype: int
+        """
+        return self._id
+
+    @id.setter
+    def id(self, id: int):
+        """Sets the id of this DirectionUpdate.
+
+
+        :param id: The id of this DirectionUpdate.
+        :type id: int
+        """
+
+        self._id = id
 
     @property
     def direction(self) -> str:
