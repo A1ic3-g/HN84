@@ -70,6 +70,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         reqThread.start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        URL postURL = new URL("http://10.0.2.2:8080/api/v1/controller/" + Integer.toString(id) + "/heartbeat");
+                        HttpURLConnection con = (HttpURLConnection) postURL.openConnection();
+                        con.setRequestMethod("POST");
+                        con.setRequestProperty("Content-Type", "application/json");
+                        con.setDoOutput(true);
+                        String json = "{}";
+
+                        try (OutputStream os = con.getOutputStream()) {
+                            byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                            os.write(input, 0, input.length);
+                        }
+
+                        Log.d("HN84", json);
+                        con.getResponseCode();
+                        Thread.sleep(5000);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
     }
 
     public void onButtonClick(View v) {
