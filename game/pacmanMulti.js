@@ -72,6 +72,7 @@ class PacMan {
   }
 
   update() {
+    this.updateScoreDisplay();
     let gridPosX = Math.floor(this.x / level.tileSize);
     let gridPosY = Math.floor(this.y / level.tileSize);
     let cellCenterX = (gridPosX + 0.5) * level.tileSize;
@@ -194,6 +195,25 @@ class PacMan {
     for (let g in ghosts) {
     }
   }
+  updateScoreDisplay() {
+    const scoreElement = document.getElementById(`score${this.color}`);
+    const livesElement = document.getElementById(`lives${this.color}`);
+
+    console.log(`Updating score for color: ${this.color}`);
+    console.log(`Score element found: `, scoreElement);
+    console.log(`Lives element found: `, livesElement);
+
+    if (scoreElement) scoreElement.textContent = this.score;
+    if (livesElement) {
+      livesElement.innerHTML = "";
+      for (let i = 0; i < this.lives; i++) {
+        const life = document.createElement("div");
+        life.className = "life";
+        life.style.backgroundColor = this.color;
+        livesElement.appendChild(life);
+      }
+    }
+  }
 }
 
 class Level {
@@ -226,7 +246,7 @@ class Level {
         } else if (tile === "*") {
           // Draw a power-up pellet
         } else if (tile === "S") {
-          this.ctx.fillStyle = "green";
+          /*this.ctx.fillStyle = "green";
           this.ctx.beginPath();
           this.ctx.fillRect(
             col * this.tileSize + this.tileSize / 4,
@@ -234,7 +254,7 @@ class Level {
             this.tileSize / 2,
             this.tileSize / 2
           );
-          this.ctx.fill();
+          this.ctx.fill();*/
         }
         // more conditions here for additional tile types
       }
@@ -595,7 +615,7 @@ class Pellet {
   constructor(x, y, scoreValue = 10) {
     this.x = x;
     this.y = y;
-    this.radius = 1.5; // Standard size of a pellet
+    this.radius = 2.5; // Standard size of a pellet
     this.scoreValue = scoreValue;
     this.eaten = false;
   }
@@ -623,7 +643,7 @@ class Pellet {
 class PowerPellet extends Pellet {
   constructor(x, y, scoreValue = 50) {
     super(x, y, scoreValue);
-    this.radius = 3; // Power pellets are larger
+    this.radius = 7; // Power pellets are larger
   }
 
   draw(ctx) {
@@ -662,6 +682,7 @@ class Ghost {
       this.x + this.tileSize / 2,
       this.y + 2 * (this.tileSize / 3)
     );
+    this.ctx.lineTo(this.x, this.y + 2 * (this.tileSize / 4));
     this.ctx.lineTo(
       this.x - this.tileSize / 2,
       this.y + 2 * (this.tileSize / 3)
@@ -728,14 +749,132 @@ class Ghost {
 class Inky extends Ghost {
   constructor(ctx, x, y, tileSize) {
     super(ctx, x, y, "cyan", tileSize);
+
+  this.targetPacMan = { x: 0, y: 0 };
+  this.speed = 1.1;
+  this.dx = 0;
+  this.dy = 0;
+  this.nextDx = 0;
+  this.nextDy = 0;
+}
+
+update() {
+  this.draw();
+
+  // Find the target Pac-Man with the highest score
+  let highestScore = 0;
+  for (let p of pacMen) {
+    if (p.score > highestScore) {
+      highestScore = p.score;
+      if (p.direction == "left") {
+        this.targetPacMan = { x: p.x - this.tileSize * 4, y: p.y };
+      } else if (p.direction == "right") {
+        this.targetPacMan = { x: p.x + this.tileSize * 4, y: p.y };
+      } else if (p.direction == "down") {
+        this.targetPacMan = { x: p.x, y: p.y - this.tileSize * 4 };
+      } else {
+        this.targetPacMan = {
+          x: p.x - this.tileSize * 4,
+          y: p.y + this.tileSize * 4,
+        };
+      }
+    }
   }
 
-  update() {
-    //console.log("InkyDraw");
-    this.draw();
+  // Calculate the grid position
+  let gridPosX = Math.floor(this.x / level.tileSize);
+  let gridPosY = Math.floor(this.y / level.tileSize);
+  let cellCenterX = (gridPosX + 0.5) * level.tileSize;
+  let cellCenterY = (gridPosY + 0.5) * level.tileSize;
 
-    // Inky movement logic
+  // Check if Blinky is near the center of the tile
+  let nearCenterX = Math.abs(this.x - cellCenterX) < this.speed;
+  let nearCenterY = Math.abs(this.y - cellCenterY) < this.speed;
+
+  // Movement decision only when near the center of a tile
+  if (nearCenterX && nearCenterY) {
+    // Determine the opposite direction to avoid 180-degree turns
+    const oppositeDirection = {
+      left: "right",
+      right: "left",
+      up: "down",
+      down: "up",
+    }[this.direction];
+
+    // Basic pathfinding towards the target Pac-Man
+    let diffX = this.targetPacMan.x - this.x;
+    let diffY = this.targetPacMan.y - this.y;
+
+    let directionOptions = [];
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      directionOptions.push(diffX > 0 ? "right" : "left");
+      directionOptions.push(diffY > 0 ? "down" : "up");
+    } else {
+      directionOptions.push(diffY > 0 ? "down" : "up");
+      directionOptions.push(diffX > 0 ? "right" : "left");
+    }
+
+    // Remove the opposite direction to prevent wobbling
+    directionOptions = directionOptions.filter(
+      (direction) => direction !== oppositeDirection
+    );
+
+    // Check for walls and adjust direction
+    let directionChanged = false;
+    for (let direction of directionOptions) {
+      let dx = 0,
+        dy = 0;
+      if (direction === "left") dx = -1;
+      else if (direction === "right") dx = 1;
+      else if (direction === "up") dy = -1;
+      else if (direction === "down") dy = 1;
+
+      let nextX = gridPosX + dx;
+      let nextY = gridPosY + dy;
+
+      if (!level.isWall(nextX * level.tileSize, nextY * level.tileSize)) {
+        this.dx = dx;
+        this.dy = dy;
+        directionChanged = true;
+        this.x += this.dx * this.speed; // Move one step immediately
+        this.y += this.dy * this.speed;
+        break;
+      }
+    }
+
+    if (!directionChanged) {
+      // Continue in the same direction if no new direction is found
+      this.x += this.dx * this.speed;
+      this.y += this.dy * this.speed;
+    }
+  } else {
+    // Continue moving in the current direction until near the center
+    this.x += this.dx * this.speed;
+    this.y += this.dy * this.speed;
   }
+
+  // Handle wrapping around the screen
+  if (this.x - this.tileSize / 2 > 560) {
+    this.x -= 560;
+  } else if (this.x + this.tileSize / 2 < 0) {
+    this.x += 560;
+  }
+  if (this.y - this.tileSize / 2 > 620) {
+    this.y -= 620;
+  } else if (this.y + this.tileSize / 2 < 0) {
+    this.y += 620;
+  }
+
+  // Set the new direction
+  this.direction =
+    this.dx < 0
+      ? "left"
+      : this.dx > 0
+      ? "right"
+      : this.dy < 0
+      ? "up"
+      : "down";
+}
 }
 
 class Pinky extends Ghost {
@@ -760,17 +899,18 @@ class Pinky extends Ghost {
         if (p.direction == "left") {
           this.targetPacMan = { x: p.x - this.tileSize * 4, y: p.y };
         } else if (p.direction == "right") {
-          this.targetPacMan = { x: p.x + this.tileSize*4, y: p.y };
+          this.targetPacMan = { x: p.x + this.tileSize * 4, y: p.y };
         } else if (p.direction == "down") {
-          this.targetPacMan = { x: p.x, y: p.y - this.tileSize*4 };
-        }
-          else {
-            this.targetPacMan = { x: p.x - this.tileSize*4, y: p.y + this.tileSize*4 };
-          }
-
+          this.targetPacMan = { x: p.x, y: p.y - this.tileSize * 4 };
+        } else {
+          this.targetPacMan = {
+            x: p.x - this.tileSize * 4,
+            y: p.y + this.tileSize * 4,
+          };
         }
       }
-    
+    }
+
     // Calculate the grid position
     let gridPosX = Math.floor(this.x / level.tileSize);
     let gridPosY = Math.floor(this.y / level.tileSize);
@@ -989,14 +1129,122 @@ class Blinky extends Ghost {
 class Clyde extends Ghost {
   constructor(ctx, x, y, tileSize) {
     super(ctx, x, y, "orange", tileSize);
+    this.targetPacMan = { x: 0, y: 0 };
+    this.speed = 1.1;
+    this.dx = 0;
+    this.dy = 0;
+    this.nextDx = 0;
+    this.nextDy = 0;
+  }
+    update() {
+      this.draw();
+  
+      // Find the target Pac-Man with the highest score
+      let highestScore = 0;
+      for (let p of pacMen) {
+        if (p.score > highestScore) {
+          highestScore = p.score;
+          this.targetPacMan = { x: p.x, y: p.y };
+        }
+      }
+  
+      // Calculate the grid position
+      let gridPosX = Math.floor(this.x / level.tileSize);
+      let gridPosY = Math.floor(this.y / level.tileSize);
+      let cellCenterX = (gridPosX + 0.5) * level.tileSize;
+      let cellCenterY = (gridPosY + 0.5) * level.tileSize;
+  
+      // Check if Blinky is near the center of the tile
+      let nearCenterX = Math.abs(this.x - cellCenterX) < this.speed;
+      let nearCenterY = Math.abs(this.y - cellCenterY) < this.speed;
+  
+      // Movement decision only when near the center of a tile
+      if (nearCenterX && nearCenterY) {
+        // Determine the opposite direction to avoid 180-degree turns
+        const oppositeDirection = {
+          left: "right",
+          right: "left",
+          up: "down",
+          down: "up",
+        }[this.direction];
+  
+        // Basic pathfinding towards the target Pac-Man
+        let diffX = this.targetPacMan.x - this.x;
+        let diffY = this.targetPacMan.y - this.y;
+  
+        let directionOptions = [];
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+          directionOptions.push(diffX > 0 ? "right" : "left");
+          directionOptions.push(diffY > 0 ? "down" : "up");
+        } else {
+          directionOptions.push(diffY > 0 ? "down" : "up");
+          directionOptions.push(diffX > 0 ? "right" : "left");
+        }
+  
+        // Remove the opposite direction to prevent wobbling
+        directionOptions = directionOptions.filter(
+          (direction) => direction !== oppositeDirection
+        );
+  
+        // Check for walls and adjust direction
+        let directionChanged = false;
+        for (let direction of directionOptions) {
+          let dx = 0,
+            dy = 0;
+          if (direction === "left") dx = -1;
+          else if (direction === "right") dx = 1;
+          else if (direction === "up") dy = -1;
+          else if (direction === "down") dy = 1;
+  
+          let nextX = gridPosX + dx;
+          let nextY = gridPosY + dy;
+  
+          if (!level.isWall(nextX * level.tileSize, nextY * level.tileSize)) {
+            this.dx = dx;
+            this.dy = dy;
+            directionChanged = true;
+            this.x += this.dx * this.speed; // Move one step immediately
+            this.y += this.dy * this.speed;
+            break;
+          }
+        }
+  
+        if (!directionChanged) {
+          // Continue in the same direction if no new direction is found
+          this.x += this.dx * this.speed;
+          this.y += this.dy * this.speed;
+        }
+      } else {
+        // Continue moving in the current direction until near the center
+        this.x += this.dx * this.speed;
+        this.y += this.dy * this.speed;
+      }
+  
+      // Handle wrapping around the screen
+      if (this.x - this.tileSize / 2 > 560) {
+        this.x -= 560;
+      } else if (this.x + this.tileSize / 2 < 0) {
+        this.x += 560;
+      }
+      if (this.y - this.tileSize / 2 > 620) {
+        this.y -= 620;
+      } else if (this.y + this.tileSize / 2 < 0) {
+        this.y += 620;
+      }
+  
+      // Set the new direction
+      this.direction =
+        this.dx < 0
+          ? "left"
+          : this.dx > 0
+          ? "right"
+          : this.dy < 0
+          ? "up"
+          : "down";
+    }
   }
 
-  update() {
-    console.log("ClydeDraw");
-    this.draw();
-    // Clyde movement logic
-  }
-}
+  
 
 const canvas = document.getElementById("pacmanCanvas");
 const ctx = canvas.getContext("2d");
@@ -1098,7 +1346,7 @@ function addNewGhost(ghost) {
 
 function addNewPacMan() {
   const colors = ["red", "green", "purple", "orange"];
-  const color = colors[Math.floor(Math.random() * colors.length)];
+  const color = colors[pacMen.length % colors.length];
 
   // Get a random spawn location from the level's spawn points
   const spawnIndex = Math.floor(Math.random() * level.spawnPoints.length);
