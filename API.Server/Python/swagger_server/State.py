@@ -16,4 +16,4 @@ class State:
 
     def StoreDirectionUpdate(self, controller_id, direction):
         "Stores the direction update for a controller"
-        self.updates.append({controller_id, direction})
+        self.updates.append((controller_id, direction))
