@@ -15,12 +15,13 @@ class State:
         "Gets next controller ID"
         controller_id = self.next_controller_id
         self.next_controller_id += 1
+        print(controller_id)
         return controller_id
 
     def StoreDirectionUpdate(self, controller_id, direction):
         "Stores the direction update for a controller"
         
-
+        direction.id = controller_id
         self.updates.append(Update("direction", 
                                    direction));
 

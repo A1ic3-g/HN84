@@ -1,6 +1,6 @@
 class PacMan {
   constructor(ctx, id, x, y, radius, color, mouthSpeed = 0.01) {
-    this.id;
+    this.id = id;
     this.score = 0;
     this.ctx = ctx;
     this.x = x;
@@ -1122,6 +1122,7 @@ async function GetUpdatesFromApi() {
     data.forEach((update) => {
       switch (update.updateType.toLowerCase()) {
         case 'direction':
+          console.log(update.updateDetails);
           SetPacmanDirection(update.updateDetails.id,
                              update.updateDetails.direction);
           break;
@@ -1223,12 +1224,16 @@ document.addEventListener("keydown", (event) => {
 
 function SetPacmanDirection(id, direction) {
   direction = direction.toLowerCase();
+
+  console.log("setting pacman " + id + " to " + direction);
   pacMan = null;
   for (const p of pacMen) {
-    if (p.key == id) {
+    if (p.id == id) {
       pacMan = p;
     }
   }
+
+  console.log("pacman is " + pacMan.id);
 
   switch (direction) {
     case "up":
