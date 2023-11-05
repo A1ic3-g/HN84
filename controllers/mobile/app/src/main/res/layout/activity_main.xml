@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/upButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="41dp"
+        android:onClick="onButtonClick"
+        android:text="Up"
+        app:layout_constraintBottom_toTopOf="@+id/leftButton"
+        app:layout_constraintStart_toEndOf="@+id/leftButton" />
+
+    <Button
+        android:id="@+id/downButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="37dp"
+        android:onClick="onButtonClick"
+        android:text="Down"
+        app:layout_constraintStart_toEndOf="@+id/leftButton"
+        app:layout_constraintTop_toBottomOf="@+id/leftButton" />
+
+    <Button
+        android:id="@+id/leftButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="296dp"
+        android:layout_marginEnd="15dp"
+        android:onClick="onButtonClick"
+        android:text="Left"
+        app:layout_constraintEnd_toStartOf="@+id/rightButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/rightButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="37dp"
+        android:onClick="onButtonClick"
+        android:text="Right"
+        app:layout_constraintBottom_toTopOf="@+id/downButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/leftButton" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,58 @@
+body {
+    font-family: 'Courier New', Courier, monospace; /* Retro-style monospace font */
+    background-color: #000000; /* Light background for a vintage look */
+    color: #333; /* Dark text color for contrast */
+    padding: 20px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Press Start 2P', cursive; /* Pixelated font for headers */
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    background-color: #ff4757; /* Bright, retro button color */
+    color: rgb(255, 255, 255);
+    border: none;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #e84118; /* Darken button on hover */
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.card {
+    background: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for cards */
+}
+
+/* Media query for smaller screens */
+@media (max-width: 700px) {
+    .container {
+        width: 95%;
+    }
+}
+
+/* Import the 'Press Start 2P' font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
