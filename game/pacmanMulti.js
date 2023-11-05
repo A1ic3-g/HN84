@@ -72,6 +72,7 @@ class PacMan {
   }
 
   update() {
+    this.updateScoreDisplay();
     let gridPosX = Math.floor(this.x / level.tileSize);
     let gridPosY = Math.floor(this.y / level.tileSize);
     let cellCenterX = (gridPosX + 0.5) * level.tileSize;
@@ -194,6 +195,25 @@ class PacMan {
     for (let g in ghosts) {
     }
   }
+  updateScoreDisplay() {
+    const scoreElement = document.getElementById(`score${this.color}`);
+    const livesElement = document.getElementById(`lives${this.color}`);
+
+    console.log(`Updating score for color: ${this.color}`);
+    console.log(`Score element found: `, scoreElement);
+    console.log(`Lives element found: `, livesElement);
+
+    if (scoreElement) scoreElement.textContent = this.score;
+    if (livesElement) {
+      livesElement.innerHTML = "";
+      for (let i = 0; i < this.lives; i++) {
+        const life = document.createElement("div");
+        life.className = "life";
+        life.style.backgroundColor = this.color;
+        livesElement.appendChild(life);
+      }
+    }
+  }
 }
 
 class Level {
@@ -226,7 +246,7 @@ class Level {
         } else if (tile === "*") {
           // Draw a power-up pellet
         } else if (tile === "S") {
-          this.ctx.fillStyle = "green";
+          /*this.ctx.fillStyle = "green";
           this.ctx.beginPath();
           this.ctx.fillRect(
             col * this.tileSize + this.tileSize / 4,
@@ -234,7 +254,7 @@ class Level {
             this.tileSize / 2,
             this.tileSize / 2
           );
-          this.ctx.fill();
+          this.ctx.fill();*/
         }
         // more conditions here for additional tile types
       }
@@ -595,7 +615,7 @@ class Pellet {
   constructor(x, y, scoreValue = 10) {
     this.x = x;
     this.y = y;
-    this.radius = 1.5; // Standard size of a pellet
+    this.radius = 2.5; // Standard size of a pellet
     this.scoreValue = scoreValue;
     this.eaten = false;
   }
@@ -623,7 +643,7 @@ class Pellet {
 class PowerPellet extends Pellet {
   constructor(x, y, scoreValue = 50) {
     super(x, y, scoreValue);
-    this.radius = 3; // Power pellets are larger
+    this.radius = 7; // Power pellets are larger
   }
 
   draw(ctx) {
@@ -662,6 +682,7 @@ class Ghost {
       this.x + this.tileSize / 2,
       this.y + 2 * (this.tileSize / 3)
     );
+    this.ctx.lineTo(this.x, this.y + 2 * (this.tileSize / 4));
     this.ctx.lineTo(
       this.x - this.tileSize / 2,
       this.y + 2 * (this.tileSize / 3)
@@ -760,17 +781,18 @@ class Pinky extends Ghost {
         if (p.direction == "left") {
           this.targetPacMan = { x: p.x - this.tileSize * 4, y: p.y };
         } else if (p.direction == "right") {
-          this.targetPacMan = { x: p.x + this.tileSize*4, y: p.y };
+          this.targetPacMan = { x: p.x + this.tileSize * 4, y: p.y };
         } else if (p.direction == "down") {
-          this.targetPacMan = { x: p.x, y: p.y - this.tileSize*4 };
-        }
-          else {
-            this.targetPacMan = { x: p.x - this.tileSize*4, y: p.y + this.tileSize*4 };
-          }
-
+          this.targetPacMan = { x: p.x, y: p.y - this.tileSize * 4 };
+        } else {
+          this.targetPacMan = {
+            x: p.x - this.tileSize * 4,
+            y: p.y + this.tileSize * 4,
+          };
         }
       }
-    
+    }
+
     // Calculate the grid position
     let gridPosX = Math.floor(this.x / level.tileSize);
     let gridPosY = Math.floor(this.y / level.tileSize);
@@ -1098,7 +1120,7 @@ function addNewGhost(ghost) {
 
 function addNewPacMan() {
   const colors = ["red", "green", "purple", "orange"];
-  const color = colors[Math.floor(Math.random() * colors.length)];
+  const color = colors[pacMen.length % colors.length];
 
   // Get a random spawn location from the level's spawn points
   const spawnIndex = Math.floor(Math.random() * level.spawnPoints.length);
