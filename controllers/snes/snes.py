@@ -9,7 +9,7 @@ def getId():
 
     if response.status_code == 200:
         data = response.json()
-        
+        print(data.get("id"))
         return data.get("id")
     
     return None

@@ -6,11 +6,29 @@ info:
 servers:
 - url: http://localhost:8080/api/v1
 tags:
-- name: user
-  description: Operations about user
 - name: controller
   description: Controller calls
+- name: Game Updates
+  description: Get updates about game
 paths:
+  /update:
+    get:
+      tags:
+      - Game Updates
+      summary: Get game updates
+      description: Get game updates
+      operationId: update_get
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Update'
+                x-content-type: application/json
+      x-openapi-router-controller: swagger_server.controllers.game_updates_controller
   /controller:
     get:
       tags:
@@ -85,7 +103,28 @@ components:
     DirectionUpdate:
       type: object
       properties:
+        id:
+          type: integer
+          format: int64
+          example: 0
         direction:
           type: string
           format: string
           example: up
+    Update:
+      type: object
+      properties:
+        updateType:
+          type: string
+          example: direction
+        updateDetails:
+          type: object
+          example:
+            id: 4
+            direction: up
+      example:
+        updateDetails:
+          id: 4
+          direction: up
+        updateType: direction
+

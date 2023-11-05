@@ -36,8 +36,9 @@ def controller_get():  # noqa: E501
     """
     state = State()
     nextId = state.GetNextControllerId()
-    print(nextId)
-    return Controller(nextId)
+    controller = Controller(nextId)
+    state.StoreControllerConnectUpdate(controller)
+    return controller
 
 def controller_controller_id_heartbeat_post(controller_id):  # noqa: E501
     """heartbeat signal
