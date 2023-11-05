@@ -13,8 +13,7 @@ class PacMan {
     this.dy = 0;
     this.nextDx = 0;
     this.nextDy = 0;
-    this.direction = 'right';
-
+    this.direction = "right";
   }
 
   draw(direction) {
@@ -68,7 +67,7 @@ class PacMan {
           this.mouthOpening = true;
         }
       }
-    } 
+    }
   }
 
   update() {
@@ -80,7 +79,11 @@ class PacMan {
 
     let canTurn =
       Math.abs(cellCenterX - this.x) <= turnTolerance &&
-      Math.abs(cellCenterY - this.y) <= turnTolerance;
+      Math.abs(cellCenterY - this.y) <= turnTolerance &&
+      this.x < 560 - this.radius &&
+      this.x > 0 + this.radius &&
+      this.y < 600 - this.radius &&
+      this.y > 0 + this.radius;
 
     if (canTurn) {
       let potentialX = gridPosX + this.nextDx;
@@ -92,7 +95,6 @@ class PacMan {
         this.dx = this.nextDx;
         this.dy = this.nextDy;
       }
-      
     }
 
     let nextX = this.x + this.dx * this.radius;
@@ -101,9 +103,19 @@ class PacMan {
     if (!level.isWall(nextX, nextY)) {
       this.x += this.dx;
       this.y += this.dy;
+    } else {
+      this.setDirection(0, 0);
     }
-    else {
-      this.setDirection(0,0);
+
+    if (this.x - this.radius > 560) {
+      this.x -= 560;
+    } else if (this.x + this.radius < 0) {
+      this.x += 560;
+    }
+    if (this.y - this.radius > 620) {
+      this.y -= 620;
+    } else if (this.y + this.radius < 0) {
+      this.y += 620;
     }
 
     if (this.dx !== 0 || this.dy !== 0) {
@@ -112,8 +124,8 @@ class PacMan {
       this.animateMouth(false);
     }
 
-    if (this.dx == 0 && this.dy == 0) {}
-    else if (this.dx < 0) this.direction = "left";
+    if (this.dx == 0 && this.dy == 0) {
+    } else if (this.dx < 0) this.direction = "left";
     else if (this.dx > 0) this.direction = "right";
     else if (this.dy < 0) this.direction = "up";
     else if (this.dy > 0) this.direction = "down";
@@ -157,7 +169,9 @@ class Level {
     this.color = color;
     this.tileSize = 20; // Size of each tile in the level
     this.spawnPoints = []; // Array to hold spawn point coordinates
+    this.inkySpawnPoints = [];
     this.collectSpawnPoints(); // Initialize spawn points
+    this.collectGhostSpawnPoints();
     this.initializePellets();
   }
 
@@ -166,20 +180,16 @@ class Level {
     for (let row = 0; row < this.levelString.length; row++) {
       for (let col = 0; col < this.levelString[row].length; col++) {
         const tile = this.levelString[row][col];
-        if (tile === "W") {
-          this.ctx.fillStyle = this.color;
-          this.ctx.fillRect(
-            col * this.tileSize,
-            row * this.tileSize,
-            this.tileSize,
-            this.tileSize
-          );
-        } else if (tile === ".") {
+        if (tile === "W" || tile === "G") {
+          this.drawWall(col, row);
+        } else if (tile === "D") {
+          this.drawDoor(col,row);
+        }
+        else if (tile === ".") {
           // Draw a pellet
         } else if (tile === "*") {
           // Draw a power-up pellet
         } else if (tile === "S") {
-          // Spawn Point
           this.ctx.fillStyle = "green";
           this.ctx.beginPath();
           this.ctx.fillRect(
@@ -193,6 +203,272 @@ class Level {
         // more conditions here for additional tile types
       }
     }
+  }
+
+  drawDoor(col,row) {
+    // Doors are always basically the same
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(
+      col * this.tileSize,
+      row * this.tileSize,
+      this.tileSize,
+      this.tileSize
+    );
+    this.ctx.fillStyle = "pink";
+    this.ctx.fillRect(
+      col * this.tileSize,
+      row * this.tileSize + this.tileSize * 4/7,
+      this.tileSize,
+      this.tileSize/3
+    );
+    if (this.levelString[row][col-1] === "G")
+    {
+      this.ctx.moveTo(
+        col * this.tileSize, 
+        row * this.tileSize + this.tileSize /2);
+      this.ctx.lineTo(
+        col * this.tileSize,
+        row * this.tileSize + this.tileSize 
+      );
+
+          this.ctx.stroke();
+    } else if (this.levelString[row][col+1] === "G")
+    {
+      this.ctx.moveTo(
+        (1 + col) * this.tileSize , 
+        row * this.tileSize + this.tileSize /2);
+      this.ctx.lineTo(
+        (1 + col) * this.tileSize,
+        row * this.tileSize + this.tileSize 
+      );
+
+          this.ctx.stroke();
+    }
+  }
+  drawWall(col, row) {
+    // Draw the wall as a black block
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(
+      col * this.tileSize,
+      row * this.tileSize,
+      this.tileSize,
+      this.tileSize
+    );
+
+    if (!this.isWallTile(col, row)) {
+      return;
+    }
+
+    // Draw the blue line in the center with corner handling
+    this.ctx.strokeStyle = "blue";
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+
+    // Determine corner type
+    // 0 1 2
+    // 3 - 4
+    // 5 6 7
+    //false false true
+    //false      true
+    //false true false
+    let has0 = this.isWallTile(col - 1, row + 1);
+
+    let has1 = this.isWallTile(col, row - 1);
+    let has2 = this.isWallTile(col + 1, row + 1);
+    let has3 = this.isWallTile(col - 1, row);
+    let has4 = this.isWallTile(col + 1, row);
+    let has5 = this.isWallTile(col - 1, row - 1);
+    let has6 = this.isWallTile(col, row + 1);
+    let has7 = this.isWallTile(col + 1, row - 1);
+    // For handling edges
+    if (col == 0) {
+      has0 = true;
+      has3 = true;
+      has5 = true;
+    }
+    if (row == 0) {
+      has0 = true;
+      has1 = true;
+      has2 = true;
+    }
+    if (col == lengthOfEachRow) {
+      has2 = true;
+      has4 = true;
+      has7 = true;
+    }
+    if (row == numberOfRows) {
+      has5 = true;
+      has6 = true;
+      has7 = true;
+    }
+
+    //console.log(row, col, has0, has1, has2, has3, has4, has5 ,has6, has7);
+    // Calculate center point
+    const centerX = col * this.tileSize + this.tileSize / 2;
+    const centerY = row * this.tileSize + this.tileSize / 2;
+
+    if (!has0 && has1 && has2 && has3 && has4 && has5 && has6 && has7) {
+      // Top-left corner
+      this.ctx.arc(
+        centerX - this.tileSize / 2,
+        centerY + this.tileSize / 2,
+        this.tileSize / 2,
+        1.5 * Math.PI,
+        0
+      );
+    } else if (has0 && has1 && !has2 && has3 && has4 && has5 && has6 && has7) {
+      // Top-right corner
+      this.ctx.arc(
+        centerX + this.tileSize / 2,
+        centerY + this.tileSize / 2,
+        this.tileSize / 2,
+        Math.PI,
+        1.5 * Math.PI
+      );
+    } else if (has0 && has1 && has2 && has3 && has4 && !has5 && has6 && has7) {
+      // Bottom-left corner
+      this.ctx.arc(
+        centerX - this.tileSize / 2,
+        centerY - this.tileSize / 2,
+        this.tileSize / 2,
+        Math.PI / 2,
+        0,
+        true
+      );
+    } else if (has0 && has1 && has2 && has3 && has4 && has5 && has6 && !has7) {
+      // Bottom-right corner
+      this.ctx.arc(
+        centerX + this.tileSize / 2,
+        centerY - this.tileSize / 2,
+        this.tileSize / 2,
+        Math.PI / 2,
+        Math.PI
+      );
+    } else if ((has1 && !has3 && has6) || (has1 && !has4 && has6)) {
+      // Vertical line
+      if (this.levelString[row][col] === "G") {
+        if (col > lengthOfEachRow / 2) {
+          this.ctx.moveTo(col * this.tileSize, row * this.tileSize);
+          this.ctx.lineTo(
+            col * this.tileSize,
+            row * this.tileSize + this.tileSize
+          );
+        } else {
+          this.ctx.moveTo(
+            col * this.tileSize + this.tileSize,
+            row * this.tileSize
+          );
+          this.ctx.lineTo(
+            col * this.tileSize + this.tileSize,
+            row * this.tileSize + this.tileSize
+          );
+        }
+      }
+      this.ctx.moveTo(
+        col * this.tileSize + this.tileSize / 2,
+        row * this.tileSize
+      );
+      this.ctx.lineTo(
+        col * this.tileSize + this.tileSize / 2,
+        (row + 1) * this.tileSize
+      );
+    } else if ((!has1 && has3 && has4) || (has3 && has4 && !has6)) {
+      // Horizontal line
+      if (this.levelString[row][col] === "G") {
+        if (row > numberOfRows / 2) {
+          this.ctx.moveTo(col * this.tileSize, row * this.tileSize);
+          this.ctx.lineTo(
+            col * this.tileSize + this.tileSize,
+            row * this.tileSize
+          );
+        } else {
+          this.ctx.moveTo(
+            col * this.tileSize,
+            row * this.tileSize + this.tileSize
+          );
+          this.ctx.lineTo(
+            col * this.tileSize + this.tileSize,
+            row * this.tileSize + this.tileSize
+          );
+        }
+      }
+      this.ctx.moveTo(
+        col * this.tileSize + this.tileSize,
+        row * this.tileSize + this.tileSize / 2
+      );
+      this.ctx.lineTo(
+        col * this.tileSize,
+        row * this.tileSize + this.tileSize / 2
+      );
+    } else if (!has3 && !has5 && !has6) {
+      this.ctx.arc(
+        centerX + this.tileSize / 2,
+        centerY - this.tileSize / 2,
+        this.tileSize / 2,
+        Math.PI,
+        Math.PI / 2,
+        true
+      );
+    } else if (!has4 && !has6 && !has7) {
+      // Curve from top to left
+      this.ctx.arc(
+        centerX - this.tileSize / 2,
+        centerY - this.tileSize / 2,
+        this.tileSize / 2,
+        Math.PI / 2,
+        0,
+        true
+      );
+    } else if (!has1 && !has2 && !has4) {
+      // Curve from bottom to left
+      this.ctx.arc(
+        centerX - this.tileSize / 2,
+        centerY + this.tileSize / 2,
+        this.tileSize / 2,
+        1.5 * Math.PI,
+        0
+      );
+    } else if (!has0 && !has1 && !has3) {
+      // Curve from bottom to right
+      this.ctx.arc(
+        centerX + this.tileSize / 2,
+        centerY + this.tileSize / 2,
+        this.tileSize / 2,
+        Math.PI,
+        1.5 * Math.PI
+      );
+    }
+    this.ctx.stroke();
+  }
+
+  shouldDrawVerticalLine(col, row) {
+    // Draw vertical line if there is no wall directly left or right
+    return !this.isWallTile(col - 1, row) || !this.isWallTile(col + 1, row);
+  }
+
+  shouldDrawHorizontalLine(col, row) {
+    // Draw horizontal line if there is no wall directly above or below
+    return !this.isWallTile(col, row - 1) || !this.isWallTile(col, row + 1);
+  }
+
+  isSurroundedByWalls(col, row) {
+    // Check if the current wall tile is surrounded by other wall tiles
+    return (
+      this.isWallTile(col - 1, row) &&
+      this.isWallTile(col + 1, row) &&
+      this.isWallTile(col, row - 1) &&
+      this.isWallTile(col, row + 1)
+    );
+  }
+
+  isWallTile(col, row) {
+    // Check if the specified tile is a wall
+    return (
+      this.levelString[row] &&
+      (this.levelString[row][col] === "W" ||
+        this.levelString[row][col] === "G" ||
+        this.levelString[row][col] === "D")
+    );
   }
 
   initializePellets() {
@@ -235,10 +511,27 @@ class Level {
     }
   }
 
+  collectGhostSpawnPoints() {
+    for (let row = 0; row < this.levelString.length; row++) {
+      for (let col = 0; col < this.levelString[row].length; col++) {
+        switch (this.levelString[row][col]) {
+          case "I":
+            this.inkySpawnPoints.push({
+              x: col * this.tileSize + this.tileSize / 2,
+              y: row * this.tileSize + this.tileSize / 2,
+            });
+        }
+      }
+    }
+  }
+
   isWall(x, y) {
     const row = Math.floor(y / this.tileSize);
     const col = Math.floor(x / this.tileSize);
-    return this.levelString[row] && this.levelString[row][col] === "W";
+    return (
+      this.levelString[row] &&
+      (this.levelString[row][col] === "W" || this.levelString[row][col] === "G" || this.levelString[row][col] === "D")
+    );
   }
 }
 
@@ -287,9 +580,136 @@ class PowerPellet extends Pellet {
   }
 }
 
+class Ghost {
+  constructor(ctx, x, y, color, tileSize) {
+    this.ctx = ctx;
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.tileSize = tileSize;
+    this.direction = "left";
+    this.speed = 2; // You can adjust this value as needed
+  }
+
+  draw() {
+    console.log("GenGhostDraw");
+
+    // Draw the body of the ghost
+    this.ctx.fillStyle = this.color;
+    this.ctx.beginPath();
+    this.ctx.arc(this.x, this.y, this.tileSize / 2, Math.PI, 0, false);
+    this.ctx.moveTo(this.x - this.tileSize / 2, this.y);
+
+    // Draw the bottom part of the ghost
+    for (let i = 0; i < this.tileSize; i += this.tileSize / 5) {
+      this.ctx.lineTo(
+        this.x - this.tileSize / 2 + i,
+        this.y + (this.tileSize / 4) * Math.sin(i)
+      );
+    }
+    this.ctx.closePath();
+    this.ctx.fill();
+
+    // Draw the eyes
+    this.ctx.fillStyle = "white";
+    const eyeRadius = this.tileSize / 6;
+    const leftEyeX = this.x - this.tileSize / 4;
+    const rightEyeX = this.x + this.tileSize / 4;
+    const eyeY = this.y - this.tileSize / 6;
+
+    this.ctx.beginPath();
+    this.ctx.arc(leftEyeX, eyeY, eyeRadius, 0, Math.PI * 2);
+    this.ctx.arc(rightEyeX, eyeY, eyeRadius, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Draw the pupils
+    this.ctx.fillStyle = "blue";
+    const pupilRadius = eyeRadius / 2;
+    let pupilOffsetX = 0;
+    let pupilOffsetY = 0;
+
+    if (this.direction === "left") {
+      pupilOffsetX = -pupilRadius;
+    } else if (this.direction === "right") {
+      pupilOffsetX = pupilRadius;
+    } else if (this.direction === "up") {
+      pupilOffsetY = -pupilRadius;
+    } else if (this.direction === "down") {
+      pupilOffsetY = pupilRadius;
+    }
+
+    this.ctx.beginPath();
+    this.ctx.arc(
+      leftEyeX + pupilOffsetX,
+      eyeY + pupilOffsetY,
+      pupilRadius,
+      0,
+      Math.PI * 2
+    );
+    this.ctx.arc(
+      rightEyeX + pupilOffsetX,
+      eyeY + pupilOffsetY,
+      pupilRadius,
+      0,
+      Math.PI * 2
+    );
+    this.ctx.fill();
+  }
+
+  update() {
+    // This method should be implemented by each subclass
+    // For now, just move the ghost to the left
+    this.x -= this.speed;
+  }
+}
+
+class Inky extends Ghost {
+  constructor(ctx, x, y, tileSize) {
+    super(ctx, x, y, "cyan", tileSize);
+  }
+
+  update() {
+    console.log("InkyDraw");
+    this.draw();
+
+    // Inky movement logic
+  }
+}
+
+class Pinky extends Ghost {
+  constructor(ctx, x, y, tileSize) {
+    super(ctx, x, y, "pink", tileSize);
+  }
+
+  move() {
+    // Pinky movement logic
+  }
+}
+
+class Blinky extends Ghost {
+  constructor(ctx, x, y, tileSize) {
+    super(ctx, x, y, "red", tileSize);
+  }
+
+  move() {
+    // Blinky movement logic
+  }
+}
+
+class Clyde extends Ghost {
+  constructor(ctx, x, y, tileSize) {
+    super(ctx, x, y, "orange", tileSize);
+  }
+
+  move() {
+    // Clyde movement logic
+  }
+}
+
 const canvas = document.getElementById("pacmanCanvas");
 const ctx = canvas.getContext("2d");
 let pacMen = [];
+let ghosts = [];
 const levelString = `
 WWWWWWWWWWWWWWWWWWWWWWWWWWWW
 W............WW............W
@@ -303,11 +723,11 @@ W......WW....WW....WW......W
 WWWWWW.WWWWW-WW-WWWWW.WWWWWW
 WWWWWW.WWWWW-WW-WWWWW.WWWWWW
 WWWWWW.WW----------WW.WWWWWW
-WWWWWW.WW-WWWDDWWW-WW.WWWWWW
-WWWWWW.WW-W------W-WW.WWWWWW
-T-----.---W-IBPK-W---.-----T
-WWWWWW.WW-W------W-WW.WWWWWW
-WWWWWW.WW-WWWWWWWW-WW.WWWWWW
+WWWWWW.WW-GGGDDGGG-WW.WWWWWW
+WWWWWW.WW-G------G-WW.WWWWWW
+T-----.---G-IBPK-G---.-----T
+WWWWWW.WW-G------G-WW.WWWWWW
+WWWWWW.WW-GGGGGGGG-WW.WWWWWW
 WWWWWW.WW----SS----WW.WWWWWW
 WWWWWW.WW-WWWWWWWW-WW.WWWWWW
 WWWWWW.WW-WWWWWWWW-WW.WWWWWW
@@ -323,9 +743,33 @@ W.WWWWWWWWWW.WW.WWWWWWWWWW.W
 W..........................W
 WWWWWWWWWWWWWWWWWWWWWWWWWWWW
 `.trim();
+
+const rows = levelString.split("\n");
+const nonEmptyRows = rows.filter((row) => row.trim().length > 0);
+const numberOfRows = nonEmptyRows.length - 1; // 0-based index for number of rows
+const lengthOfEachRow = nonEmptyRows[0].length - 1; // 0-based index for length of each row
+
+console.log("Number of Rows (0-based):", numberOfRows);
+console.log("Length of Each Row (0-based):", lengthOfEachRow);
+
 const level = new Level(ctx, levelString);
 
-document.getElementById("newPacman").addEventListener("click", addNewPacMan);
+function addNewGhost(ghost) {
+  const inkySpawnIndex = Math.floor(
+    Math.random() * level.inkySpawnPoints.length
+  );
+  const inkySpawnPoint = level.inkySpawnPoints[inkySpawnIndex];
+  console.log("To switch");
+  switch (ghost) {
+    case "i":
+      console.log("in switch");
+
+      const newInky = new Inky(ctx, inkySpawnPoint.x, inkySpawnPoint.y, 50);
+      ghosts.push(newInky);
+      console.log(inkySpawnPoint);
+      console.log("Adding a new Inky");
+  }
+}
 
 function addNewPacMan() {
   const colors = ["red", "green", "purple", "orange"];
@@ -353,11 +797,21 @@ function gameLoop() {
   for (let p of pacMen) {
     p.update();
   }
+  for (let g of ghosts) {
+    g.update();
+  }
   requestAnimationFrame(gameLoop);
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
   document.getElementById("newPacman").addEventListener("click", addNewPacMan);
+  gameLoop();
+});
+
+document.addEventListener("DOMContentLoaded", (event) => {
+  document.getElementById("newInky").addEventListener("click", function () {
+    addNewGhost("i");
+  });
   gameLoop();
 });
 
