@@ -187,7 +187,7 @@ class PacMan {
       this.resetPosition(); // Reset PacMan's position
     } else {
       console.log(`${this.color} Pac-Man is out of lives!`);
-      // Handle game over state
+      pacMen.pop(this);
     }
   }
 
@@ -203,7 +203,7 @@ class PacMan {
   updateScoreDisplay(index, score) {
 
     const scoreElement = document.getElementById(`score${index+1}`);
-    const livesElement = document.getElementById(`lives${this.color}`);
+    const livesElement = document.getElementById(`lives${index+1}`);
 
     if (scoreElement) scoreElement.textContent = this.score;
     if (livesElement) {

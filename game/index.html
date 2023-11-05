@@ -20,11 +20,14 @@
         }
 
         .life {
-            width: 20px;
-            height: 20px;
-            margin-right: 5px;
-            border-radius: 50%;
-        }
+			width: 20px;
+			height: 20px;
+			margin-right: 5px;
+			border-radius: 50%; 
+			background-color: yellow; 
+			position: relative; 
+			clip-path: circle(50% at 50% 50%);
+				}
 
         .score-columns {
             display: flex;
@@ -42,8 +45,7 @@
     <button id="newPinky">New Pinky</button>
     <button id="newClyde">New Clyde</button>
     <div id="info">
-        Testing with a topdown camera<br />
-        Pacman
+        
     </div>
     <canvas id="pacmanCanvas" width="560" height="620"></canvas>
     <script src="pacmanMulti.js"></script>
